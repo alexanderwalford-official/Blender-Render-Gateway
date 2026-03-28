@@ -35,3 +35,47 @@ jobs:
         tags: alexwalford/blender-render-gateway:worker
         cache-from: type=registry,ref=alexwalford/blender-render-gateway:worker
         cache-to: type=inline
+
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Get next version
+      id: version
+      run: |
+        git fetch --tags
+        LATEST=$(git tag -l "v*" --sort=-version:refname | head -n1)
+        if [ -z "$LATEST" ]; then
+          NEXT="v1.0.0"
+        else
+          MAJOR=$(echo $LATEST | cut -d. -f1 | tr -d v)
+          MINOR=$(echo $LATEST | cut -d. -f2)
+          PATCH=$(echo $LATEST | cut -d. -f3)
+          NEXT="v$MAJOR.$MINOR.$((PATCH + 1))"
+        fi
+        echo "tag=$NEXT" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.tag }}
+        name: Release ${{ steps.version.outputs.tag }}
+        body: |
+          ## What's changed
+          Docker images updated on Docker Hub:
+          - `alexwalford/blender-render-gateway:web`
+          - `alexwalford/blender-render-gateway:worker`
+
+          ## Deploy
+```bash
+          docker compose pull
+          docker compose up -d
+```
+        generate_release_notes: true
