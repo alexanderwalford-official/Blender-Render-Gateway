@@ -74,8 +74,8 @@ jobs:
           - `alexwalford/blender-render-gateway:worker`
 
           ## Deploy
-```bash
-          docker compose pull
-          docker compose up -d
-```
+          ```bash
+                    docker compose pull
+                    docker compose up -d
+          ```
         generate_release_notes: true
