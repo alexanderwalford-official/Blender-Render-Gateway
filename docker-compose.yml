@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  web:
+    build: ./web
+    container_name: blender-web
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+    depends_on:
+      - worker
+
+  worker:
+    build: ./worker
+    container_name: blender-worker
+    volumes:
+      - ./data:/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
