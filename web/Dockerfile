@@ -6,6 +6,8 @@ COPY app.py .
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
+COPY templates/ templates/
+
 RUN pip install fastapi uvicorn python-multipart
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
