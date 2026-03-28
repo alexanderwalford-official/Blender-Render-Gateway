@@ -38,22 +38,20 @@ def home():
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
+    contents = await file.read()
+    
+    print(f"[DEBUG] Filename: {file.filename}")
+    print(f"[DEBUG] Content-Type: {file.content_type}")
+    print(f"[DEBUG] Size: {len(contents)} bytes")
+    print(f"[DEBUG] Magic bytes: {contents[:10]}")
+    
+    # Temporarily remove the magic check so we can inspect
     job_id = str(uuid.uuid4())
     job_dir = f"{JOBS_PATH}/{job_id}"
     os.makedirs(job_dir, exist_ok=True)
     file_path = f"{job_dir}/{file.filename}"
-
-    # Read all content first, then write — avoids partial reads
-    contents = await file.read()
     with open(file_path, "wb") as f:
         f.write(contents)
-
-    # Verify the file looks like a .blend (magic bytes: "BLENDER")
-    with open(file_path, "rb") as f:
-        magic = f.read(7)
-    if magic != b"BLENDER":
-        shutil.rmtree(job_dir)
-        return {"error": "Invalid .blend file (failed magic byte check)"}
 
     with open(f"{job_dir}/job.txt", "w") as f:
         f.write(file.filename)
@@ -61,5 +59,6 @@ async def upload(file: UploadFile = File(...)):
     return {
         "message": "Job submitted",
         "job_id": job_id,
-        "check_renders": f"/renders/"
+        "size": len(contents),
+        "magic": str(contents[:10]),
     }
