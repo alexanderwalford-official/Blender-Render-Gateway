@@ -16,4 +16,8 @@ RUN pip3 install -r requirements.txt
 WORKDIR /app
 COPY worker.py .
 
+RUN mkdir data
+RUN mkdir data/jobs
+RUN mkdir data/renders
+
 ENTRYPOINT ["python3", "worker.py"]
