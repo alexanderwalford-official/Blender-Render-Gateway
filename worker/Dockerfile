@@ -1,7 +1,8 @@
 FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
 
 RUN apt update && apt install -y python3 python3-pip wget xz-utils \
-    libxrender1 libxi6 libxkbcommon0 libsm6 libgl1
+    libxrender1 libxi6 libxkbcommon0 libsm6 libgl1 \
+    libegl1 libegl-mesa0 libgles2
 
 # Install Blender 5.1 to match host version
 RUN wget https://download.blender.org/release/Blender5.1/blender-5.1.0-linux-x64.tar.xz \
