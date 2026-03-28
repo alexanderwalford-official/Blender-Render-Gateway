@@ -21,7 +21,7 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")
 
 @app.post("/upload")
 async def upload(file: UploadFile = File(...)):
@@ -72,4 +72,4 @@ def download_zip(job_id: str):
 
 @app.get("/job/{job_id}", response_class=HTMLResponse)
 def job_page(request: Request, job_id: str):
-    return templates.TemplateResponse("rendering.html", {"request": request, "job_id": job_id})
+    return templates.TemplateResponse(request, "rendering.html", {"job_id": job_id})
