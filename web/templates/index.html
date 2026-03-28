@@ -1,0 +1,19 @@
+<html>
+<head>
+    <title>Blender Render Server</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 80px auto; padding: 0 20px; background: #111; color: #eee; }
+        h1 { color: #ff6400; }
+        input[type=file] { margin: 20px 0; }
+        button { background: #ff6400; color: white; border: none; padding: 10px 24px; font-size: 16px; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #e05500; }
+    </style>
+</head>
+<body>
+    <h1>🎬 Blender Render Server</h1>
+    <form action="/upload" enctype="multipart/form-data" method="post">
+        <input name="file" type="file" accept=".blend"><br><br>
+        <button type="submit">Upload & Render</button>
+    </form>
+</body>
+</html>
