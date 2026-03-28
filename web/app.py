@@ -44,6 +44,12 @@ async def upload(file: UploadFile = File(...)):
     print(f"[DEBUG] Content-Type: {file.content_type}")
     print(f"[DEBUG] Size: {len(contents)} bytes")
     print(f"[DEBUG] Magic bytes: {contents[:10]}")
+
+    if not (contents[:7] == b"BLENDER" or 
+        contents[:2] == b"\x1f\x8b" or 
+        contents[:4] == b"\x28\xb5\x2f\xfd"):
+    shutil.rmtree(job_dir)
+    return {"error": "Invalid .blend file"}
     
     # Temporarily remove the magic check so we can inspect
     job_id = str(uuid.uuid4())

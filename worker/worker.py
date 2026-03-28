@@ -1,12 +1,34 @@
 import os
 import time
 import subprocess
+import zstandard as zstd
 
 BASE_PATH = "/data"
 JOBS_PATH = f"{BASE_PATH}/jobs"
 RENDER_PATH = f"{BASE_PATH}/renders"
 
 os.makedirs(RENDER_PATH, exist_ok=True)
+
+
+def decompress_if_needed(blend_path):
+    with open(blend_path, "rb") as f:
+        magic = f.read(4)
+    
+    if magic[:2] == b'\x1f\x8b':
+        import gzip
+        print("[INFO] Decompressing gzip blend")
+        tmp = blend_path + ".tmp"
+        with gzip.open(blend_path, "rb") as f_in, open(tmp, "wb") as f_out:
+            f_out.write(f_in.read())
+        os.replace(tmp, blend_path)
+
+    elif magic[:4] == b'\x28\xb5\x2f\xfd':
+        print("[INFO] Decompressing zstd blend")
+        tmp = blend_path + ".tmp"
+        dctx = zstd.ZstdDecompressor()
+        with open(blend_path, "rb") as f_in, open(tmp, "wb") as f_out:
+            dctx.copy_stream(f_in, f_out)
+        os.replace(tmp, blend_path)
 
 def process_job(job_id):
     job_dir = f"{JOBS_PATH}/{job_id}"
@@ -30,6 +52,8 @@ def process_job(job_id):
     if size == 0:
         print("[ERROR] File is empty — upload/mount issue")
         return
+
+    decompress_if_needed(blend_path)
 
     output_path = f"{RENDER_PATH}/{job_id}_####"
 
