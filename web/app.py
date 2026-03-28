@@ -103,6 +103,9 @@ def job_page(job_id: str):
         <div id="bar-wrap"><div id="bar"></div></div>
         <div id="results">
             <h2>✅ Render Complete</h2>
+            <a id="zip-link" style="display:inline-block; margin-bottom:20px; background:#ff6400; color:white; padding:10px 20px; border-radius:4px; text-decoration:none;">
+                ⬇ Download All Frames (ZIP)
+            </a>
             <div class="frame-grid" id="frame-grid"></div>
         </div>
         <a href="/" id="back">← Render another file</a>
