@@ -1,5 +1,8 @@
 from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import 
+import zipfile
+import io
 from fastapi.staticfiles import StaticFiles
 import shutil
 import os
@@ -154,3 +157,24 @@ def job_page(job_id: str):
     </body>
     </html>
     """
+
+@app.get("/download/{job_id}")
+def download_zip(job_id: str):
+    renders = sorted([f for f in os.listdir(RENDER_PATH) if f.startswith(job_id)])
+    if not renders:
+        return {"error": "No renders found for this job"}
+
+    def generate_zip():
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+            for filename in renders:
+                filepath = f"{RENDER_PATH}/{filename}"
+                zf.write(filepath, arcname=filename)
+        buf.seek(0)
+        yield buf.read()
+
+    return StreamingResponse(
+        generate_zip(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename=render_{job_id[:8]}.zip"}
+    )
