@@ -73,3 +73,9 @@ def download_zip(job_id: str):
 @app.get("/job/{job_id}", response_class=HTMLResponse)
 def job_page(request: Request, job_id: str):
     return templates.TemplateResponse(request, "rendering.html", {"job_id": job_id})
+
+@app.get("/delete-all")
+def delete_all():
+    for job_id in os.listdir(JOBS_PATH):
+        shutil.rmtree(f"{JOBS_PATH}/{job_id}", ignore_errors=True)
+    return RedirectResponse(url="/", status_code=303)
