@@ -2,6 +2,7 @@ import os
 import time
 import subprocess
 import zstandard as zstd
+import shutil
 
 BASE_PATH = "/data"
 JOBS_PATH = f"{BASE_PATH}/jobs"
