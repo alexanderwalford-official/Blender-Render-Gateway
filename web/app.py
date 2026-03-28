@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
+import aiofiles
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 import shutil
@@ -37,22 +38,18 @@ def home():
 
 
 @app.post("/upload")
-def upload(file: UploadFile = File(...)):
+async def upload(file: UploadFile = File(...)):
     job_id = str(uuid.uuid4())
     job_dir = f"{JOBS_PATH}/{job_id}"
     os.makedirs(job_dir, exist_ok=True)
-
     file_path = f"{job_dir}/{file.filename}"
 
-    with open(file_path, "wb") as f:
-        shutil.copyfileobj(file.file, f)
+    async with aiofiles.open(file_path, "wb") as out_file:
+        content = await file.read()
+        await out_file.write(content)
 
     # mark job
-    with open(f"{job_dir}/job.txt", "w") as f:
-        f.write(file.filename)
+    async with aiofiles.open(f"{job_dir}/job.txt", "w") as f:
+        await f.write(file.filename)
 
-    return {
-        "message": "Job submitted",
-        "job_id": job_id,
-        "check_renders": f"/renders/"
-    }
+    return {"job_id": job_id}
