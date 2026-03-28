@@ -9,6 +9,12 @@ RENDER_PATH = f"{BASE_PATH}/renders"
 
 os.makedirs(RENDER_PATH, exist_ok=True)
 
+# On startup, clean up any jobs left over from a previous run
+print("[INFO] Cleaning up orphaned jobs from previous run...")
+for job_id in os.listdir(JOBS_PATH):
+    job_dir = f"{JOBS_PATH}/{job_id}"
+    shutil.rmtree(job_dir, ignore_errors=True)
+    print(f"[INFO] Removed orphaned job: {job_id}")
 
 def decompress_if_needed(blend_path):
     with open(blend_path, "rb") as f:

@@ -75,7 +75,11 @@ def job_page(request: Request, job_id: str):
     return templates.TemplateResponse(request, "rendering.html", {"job_id": job_id})
 
 @app.get("/delete-all")
-def delete_all():
+def delete_all():    
     for job_id in os.listdir(JOBS_PATH):
         shutil.rmtree(f"{JOBS_PATH}/{job_id}", ignore_errors=True)
+    
+    for filename in os.listdir(RENDER_PATH):
+        os.remove(f"{RENDER_PATH}/{filename}")
+    
     return RedirectResponse(url="/", status_code=303)
