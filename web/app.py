@@ -8,6 +8,11 @@ import zipfile
 import io
 from fastapi.templating import Jinja2Templates
 import json
+import mimetypes
+
+mimetypes.add_type("image/png", ".png")
+mimetypes.add_type("image/jpeg", ".jpg")
+mimetypes.add_type("image/exr", ".exr")
 
 app = FastAPI()
 BASE_PATH = "/data"
