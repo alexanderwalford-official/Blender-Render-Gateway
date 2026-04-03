@@ -3,6 +3,8 @@ import time
 import subprocess
 import zstandard as zstd
 import shutil
+import json
+
 
 BASE_PATH = "/data"
 JOBS_PATH = f"{BASE_PATH}/jobs"
@@ -37,6 +39,22 @@ def decompress_if_needed(blend_path):
             dctx.copy_stream(f_in, f_out)
         os.replace(tmp, blend_path)
 
+
+def get_frame_range(blend_path):
+    """Ask Blender to print the frame range without rendering."""
+    result = subprocess.run([
+        "blender",
+        "-b", blend_path,
+        "--python-expr",
+        "import bpy, json; s=bpy.context.scene; print('FRAMERANGE:' + json.dumps({'start': s.frame_start, 'end': s.frame_end}))"
+    ], capture_output=True, text=True)
+    
+    for line in result.stdout.splitlines():
+        if line.startswith("FRAMERANGE:"):
+            return json.loads(line[len("FRAMERANGE:"):])
+    
+    return None
+
 def process_job(job_id):
     job_dir = f"{JOBS_PATH}/{job_id}"
     if not os.path.exists(f"{job_dir}/job.txt"):
@@ -47,35 +65,35 @@ def process_job(job_id):
 
     blend_path = f"{job_dir}/{filename}"
 
-    # --- Diagnostics ---
-    size = os.path.getsize(blend_path)
-    with open(blend_path, "rb") as f:
-        magic = f.read(10)
-    print(f"[DEBUG] File: {blend_path}")
-    print(f"[DEBUG] Size: {size} bytes")
-    print(f"[DEBUG] Magic bytes: {magic}")
-    # -------------------
-
-    if size == 0:
-        print("[ERROR] File is empty — upload/mount issue")
+    if not os.path.exists(blend_path):
+        print(f"[ERROR] Blend file not found: {blend_path}")
         return
 
     decompress_if_needed(blend_path)
 
-    output_path = f"{RENDER_PATH}/{job_id}_####"
-
-    print(f"Rendering {blend_path}")
-
+    # Remap paths
     subprocess.run([
-        "blender",
-        "-b", blend_path,
-        "-o", output_path,
-        "-a",
-        "--",
-        "--cycles-device", "CUDA"
+        "blender", "-b", blend_path,
+        "-P", "/app/remap_paths.py",
+        "--", job_dir
     ])
 
-    os.remove(f"{job_dir}/job.txt")
+    # Get frame range and write to meta.json
+    frame_range = get_frame_range(blend_path)
+    if frame_range:
+        print(f"[INFO] Frame range: {frame_range['start']} - {frame_range['end']}")
+        with open(f"{job_dir}/meta.json", "w") as f:
+            json.dump(frame_range, f)
+
+    output_path = f"{RENDER_PATH}/{job_id}_####"
+    subprocess.run([
+        "blender", "-b", blend_path,
+        "-o", output_path,
+        "-a",
+        "--", "--cycles-device", "CUDA"
+    ])
+
+    shutil.rmtree(job_dir)
 
 while True:
     jobs = os.listdir(JOBS_PATH)

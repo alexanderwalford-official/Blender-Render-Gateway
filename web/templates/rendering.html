@@ -53,21 +53,33 @@
 
             const renders = data.renders;
             const count = renders.length;
+            const range = data.frame_range;
 
-            if (count > lastCount) {
-                lastCount = count;
-                document.getElementById("status-text").textContent =
-                    `Rendering... ${count} frame${count !== 1 ? "s" : ""} done so far`;
-                const pct = data.status === "done" ? 100 : Math.min(90, (count / Math.max(count + 5, 10)) * 100);
-                document.getElementById("bar").style.width = pct + "%";
+            // Calculate total frames and accurate percentage
+            let pct = 0;
+            let statusText = "";
+
+            if (range) {
+                const total = range.end - range.start + 1;
+                pct = data.status === "done" ? 100 : Math.round((count / total) * 100);
+                statusText = data.status === "done"
+                    ? `✅ Done — ${count} frames rendered`
+                    : `Rendering... ${count} / ${total} frames (${pct}%)`;
+            } else {
+                // Fall back to pulse bar while waiting for meta.json
+                pct = data.status === "done" ? 100 : Math.min(90, count * 2);
+                statusText = data.status === "done"
+                    ? `✅ Done — ${count} frames rendered`
+                    : count > 0
+                        ? `Rendering... ${count} frames done`
+                        : `Starting render...`;
             }
 
-            if (data.status === "done") {
-                document.getElementById("bar").style.width = "100%";
-                document.getElementById("status-text").textContent =
-                    `✅ Done — ${count} frame${count !== 1 ? "s" : ""} rendered`;
-                document.getElementById("results").style.display = "block";
+            document.getElementById("bar").style.width = pct + "%";
+            document.getElementById("status-text").textContent = statusText;
 
+            if (data.status === "done") {
+                document.getElementById("results").style.display = "block";
                 const grid = document.getElementById("frame-grid");
                 grid.innerHTML = "";
                 for (const filename of renders) {

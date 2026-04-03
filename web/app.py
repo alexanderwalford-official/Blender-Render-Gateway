@@ -47,9 +47,17 @@ def status(job_id: str):
     job_dir = f"{JOBS_PATH}/{job_id}"
     renders = sorted([f for f in os.listdir(RENDER_PATH) if f.startswith(job_id)])
     pending = os.path.exists(f"{job_dir}/job.txt")
+
+    frame_range = None
+    meta_path = f"{job_dir}/meta.json"
+    if os.path.exists(meta_path):
+        with open(meta_path) as f:
+            frame_range = json.load(f)
+
     return {
         "status": "rendering" if pending else "done",
-        "renders": renders
+        "renders": renders,
+        "frame_range": frame_range
     }
 
 @app.get("/download/{job_id}")
