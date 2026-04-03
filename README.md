@@ -6,6 +6,9 @@ Built with FastAPI, Docker, and NVIDIA CUDA. Runs Blender headlessly on your GPU
 
 [![Build Blender Render Containers](https://github.com/alexanderwalford-official/Blender-Render-Gateway/actions/workflows/docker-build.yml/badge.svg)](https://github.com/alexanderwalford-official/Blender-Render-Gateway/actions/workflows/docker-build.yml)
 
+
+![Screenshot of the system.](/static/scrnsht.png)
+
 ---
 
 ## ✨ Features
