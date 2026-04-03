@@ -25,15 +25,25 @@
         </div>
 
         <div class="card mb-3">
-            <div class="card-header fw-semibold" style="color: #fff;">New Render Job</div>
+            <div class="card-header fw-semibold">New Render Job</div>
             <div class="card-body">
-                <form action="/upload" enctype="multipart/form-data" method="post">
+                <form id="upload-form" action="/upload" enctype="multipart/form-data" method="post">
                     <div class="mb-3">
                         <label for="file" class="form-label text-secondary">Select a <code>.blend</code> or <code>.zip</code> file</label>
                         <input class="form-control form-control-lg" id="file" name="file" type="file" accept=".blend,.zip">
                     </div>
-                    <button class="btn btn-primary w-100" type="submit">Upload &amp; Render</button>
+                    <button class="btn btn-primary w-100" type="submit" id="submit-btn">Upload &amp; Render</button>
                 </form>
+
+                <div id="upload-progress" style="display:none;" class="mt-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-secondary">Uploading...</small>
+                        <small class="text-secondary" id="upload-pct">0%</small>
+                    </div>
+                    <div class="progress" style="height: 8px; background-color: #2a2a2a;">
+                        <div id="upload-bar" class="progress-bar bg-primary" style="width: 0%; transition: width 0.2s;"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -61,6 +71,51 @@
     </div>
 
     <script>
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const file = document.getElementById('file').files[0];
+        if (!file) return;
+
+        const form = new FormData(this);
+        const xhr = new XMLHttpRequest();
+
+        // Show progress bar, disable button
+        document.getElementById('upload-progress').style.display = 'block';
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.textContent = 'Uploading...';
+
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                const pct = Math.round((e.loaded / e.total) * 100);
+                document.getElementById('upload-bar').style.width = pct + '%';
+                document.getElementById('upload-pct').textContent = pct + '%';
+            }
+        });
+
+        xhr.upload.addEventListener('load', function() {
+            document.getElementById('upload-pct').textContent = 'Processing...';
+            document.getElementById('upload-bar').style.width = '100%';
+            document.getElementById('upload-bar').classList.replace('bg-primary', 'bg-success');
+            btn.textContent = 'Processing...';
+        });
+
+        xhr.addEventListener('load', function() {
+            // Follow the redirect to the job page
+            window.location.href = xhr.responseURL;
+        });
+
+        xhr.addEventListener('error', function() {
+            btn.disabled = false;
+            btn.textContent = 'Upload & Render';
+            document.getElementById('upload-progress').style.display = 'none';
+            alert('Upload failed. Please try again.');
+        });
+
+        xhr.open('POST', '/upload');
+        xhr.send(form);
+    });
         async function loadJobs() {
             try {
                 const res = await fetch('/jobs');
