@@ -127,3 +127,20 @@ def delete_all():
         os.remove(f"{RENDER_PATH}/{filename}")
     
     return RedirectResponse(url="/", status_code=303)
+
+@app.get("/jobs")
+def list_jobs():
+    seen = set()
+    jobs = []
+    for filename in os.listdir(RENDER_PATH):
+        if filename.endswith(".png"):
+            job_id = filename.rsplit("_", 1)[0]
+            if job_id not in seen:
+                seen.add(job_id)
+                frames = sorted([f for f in os.listdir(RENDER_PATH) if f.startswith(job_id)])
+                jobs.append({
+                    "job_id": job_id,
+                    "frames": len(frames),
+                    "preview": frames[0] if frames else None
+                })
+    return sorted(jobs, key=lambda x: x["job_id"], reverse=True)
