@@ -71,14 +71,14 @@ def process_job(job_id):
 
     decompress_if_needed(blend_path)
 
-    # Remap paths
+    # remap paths
     subprocess.run([
         "blender", "-b", blend_path,
         "-P", "/app/remap_paths.py",
         "--", job_dir
     ])
 
-    # Get frame range and write to meta.json
+    # get frame range and write to meta.json
     frame_range = get_frame_range(blend_path)
     if frame_range:
         print(f"[INFO] Frame range: {frame_range['start']} - {frame_range['end']}")

@@ -11,6 +11,7 @@ RUN wget https://download.blender.org/release/Blender5.1/blender-5.1.0-linux-x64
     && rm blender-5.1.0-linux-x64.tar.xz
 
 COPY requirements.txt .
+COPY remap_paths.py /app/remap_paths.py
 RUN pip3 install -r requirements.txt
 
 WORKDIR /app
