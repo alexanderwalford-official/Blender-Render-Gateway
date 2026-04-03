@@ -7,6 +7,7 @@ import uuid
 import zipfile
 import io
 from fastapi.templating import Jinja2Templates
+import json
 
 app = FastAPI()
 BASE_PATH = "/data"
